@@ -1,0 +1,27 @@
+# permissions for end users to edit patches.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: patchworks
+    app.kubernetes.io/managed-by: kustomize
+  name: patch-editor-role
+rules:
+- apiGroups:
+  - patches.joshb.io
+  resources:
+  - patches
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - patches.joshb.io
+  resources:
+  - patches/status
+  verbs:
+  - get

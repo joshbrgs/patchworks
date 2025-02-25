@@ -1,0 +1,9 @@
+apiVersion: patches.joshb.io/v1
+kind: Patch
+metadata:
+  labels:
+    app.kubernetes.io/name: patchworks
+    app.kubernetes.io/managed-by: kustomize
+  name: patch-sample
+spec:
+  # TODO(user): Add fields here
