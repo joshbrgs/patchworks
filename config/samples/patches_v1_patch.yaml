@@ -6,4 +6,20 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: patch-sample
 spec:
-  # TODO(user): Add fields here
+  target:
+    kind: Deployment
+    apiVersion: apps/v1
+    name: nginx
+    namespace: default
+  source:
+    kind: ConfigMap
+    name: sample-config
+  template: |
+    spec:
+      template:
+        spec:
+          containers:
+            - name: nginx
+              env:
+                - name: APP_NAME
+                  value: "{{ .name }}"

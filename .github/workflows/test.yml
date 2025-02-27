@@ -1,0 +1,14 @@
+name: Test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: lint
+        run: make lint
+      - name: test
+        run: make test
+      - name: e2e
+        run: make e2e

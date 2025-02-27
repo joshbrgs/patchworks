@@ -23,6 +23,7 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	"github.com/prometheus/client_golang/prometheus"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,6 +32,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -45,8 +47,14 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+var totalPatches = prometheus.NewCounter(prometheus.CounterOpts{
+	Name: "patch_operator_total_patches",
+	Help: "Total patches applied",
+})
+
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	metrics.Registry.MustRegister(totalPatches)
 
 	utilruntime.Must(patchesv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
@@ -145,8 +153,9 @@ func main() {
 	}
 
 	if err = (&controller.PatchReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("patch-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Patch")
 		os.Exit(1)

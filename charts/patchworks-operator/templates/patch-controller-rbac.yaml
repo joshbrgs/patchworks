@@ -1,0 +1,32 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "patchworks-operator.fullname" . }}-patch-controller-role
+  labels:
+  {{- include "patchworks-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "patchworks-operator.fullname" . }}-patch-controller-rolebinding
+  labels:
+  {{- include "patchworks-operator.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "patchworks-operator.fullname" . }}-patch-controller-role'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "patchworks-operator.fullname" . }}-controller-manager'
+  namespace: '{{ .Release.Namespace }}'

@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "patchworks-operator.fullname" . }}-patch-viewer-role
+  labels:
+  {{- include "patchworks-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - patches.joshb.io
+  resources:
+  - patches
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - patches.joshb.io
+  resources:
+  - patches/status
+  verbs:
+  - get

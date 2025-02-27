@@ -25,17 +25,30 @@ import (
 
 // PatchSpec defines the desired state of Patch
 type PatchSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Target TargetRef `json:"target"` // The resource to patch
+	// PatchType string       `json:"patchType"`           // Patch type options are json merge or strategic
+	Source   SourceRef `json:"source"`
+	Template string    `json:"template"` // Patch data reference
+}
 
-	// Foo is an example field of Patch. Edit patch_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+type SourceRef struct {
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+}
+
+type TargetRef struct {
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
+	Namespace  string `json:"namespace"`
 }
 
 // PatchStatus defines the observed state of Patch
 type PatchStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Applied bool   `json:"applied,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
 // +kubebuilder:object:root=true
