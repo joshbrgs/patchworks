@@ -24,7 +24,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"joshb.io/patchworks/test/utils"
+	"bigideaslearning.com/patchworks/test/utils"
 )
 
 const namespace = "patchworks-system"

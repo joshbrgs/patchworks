@@ -28,7 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	patchesv1 "joshb.io/patchworks/api/v1"
+	patchesv1 "bigideaslearning.com/patchworks/api/v1"
 )
 
 // PatchReconciler reconciles a Patch object
@@ -38,11 +38,11 @@ type PatchReconciler struct {
 	Recorder record.EventRecorder
 }
 
-const patchFinalizer = "patch.finalizers.joshb.io"
+const patchFinalizer = "patch.finalizers.bigideaslearning.com"
 
-// +kubebuilder:rbac:groups=patches.joshb.io,resources=patches,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=patches.joshb.io,resources=patches/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=patches.joshb.io,resources=patches/finalizers,verbs=update
+// +kubebuilder:rbac:groups=patches.bigideaslearning.com,resources=patches,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=patches.bigideaslearning.com,resources=patches/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=patches.bigideaslearning.com,resources=patches/finalizers,verbs=update
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to

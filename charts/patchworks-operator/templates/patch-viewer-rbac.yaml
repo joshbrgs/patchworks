@@ -6,7 +6,7 @@ metadata:
   {{- include "patchworks-operator.labels" . | nindent 4 }}
 rules:
 - apiGroups:
-  - patches.joshb.io
+  - patches.bigideaslearning.com
   resources:
   - patches
   verbs:
@@ -14,7 +14,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - patches.joshb.io
+  - patches.bigideaslearning.com
   resources:
   - patches/status
   verbs:

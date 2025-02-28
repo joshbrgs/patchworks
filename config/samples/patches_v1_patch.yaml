@@ -1,4 +1,4 @@
-apiVersion: patches.joshb.io/v1
+apiVersion: patches.bigideaslearning.com/v1
 kind: Patch
 metadata:
   labels:

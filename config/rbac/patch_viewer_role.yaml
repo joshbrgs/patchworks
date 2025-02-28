@@ -8,7 +8,7 @@ metadata:
   name: patch-viewer-role
 rules:
 - apiGroups:
-  - patches.joshb.io
+  - patches.bigideaslearning.com
   resources:
   - patches
   verbs:
@@ -16,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - patches.joshb.io
+  - patches.bigideaslearning.com
   resources:
   - patches/status
   verbs:

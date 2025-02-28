@@ -13,7 +13,7 @@ rules:
   - create
   - patch
 - apiGroups:
-  - patches.joshb.io
+  - patches.bigideaslearning.com
   resources:
   - patches
   verbs:
@@ -25,13 +25,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - patches.joshb.io
+  - patches.bigideaslearning.com
   resources:
   - patches/finalizers
   verbs:
   - update
 - apiGroups:
-  - patches.joshb.io
+  - patches.bigideaslearning.com
   resources:
   - patches/status
   verbs:

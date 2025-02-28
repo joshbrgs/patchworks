@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	patchesv1 "joshb.io/patchworks/api/v1"
+	patchesv1 "bigideaslearning.com/patchworks/api/v1"
 )
 
 var _ = Describe("Patch Controller", func() {

@@ -1,4 +1,4 @@
-module joshb.io/patchworks
+module bigideaslearning.com/patchworks
 
 go 1.23.0
 

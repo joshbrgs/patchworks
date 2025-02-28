@@ -32,7 +32,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	patchesv1 "joshb.io/patchworks/api/v1"
+	patchesv1 "bigideaslearning.com/patchworks/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 

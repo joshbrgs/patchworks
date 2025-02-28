@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	patchesv1 "joshb.io/patchworks/api/v1"
+	patchesv1 "bigideaslearning.com/patchworks/api/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -113,9 +113,9 @@ func (r *PatchReconciler) applyPatch(ctx context.Context, target patchesv1.Targe
 
 	originalState, _ := json.Marshal(targetObj.Object)
 	annotations := map[string]string{
-		"patches.joshb.io/patched-by":     "patch-operator",
-		"patches.joshb.io/patch-id":       string(uuid.NewUUID()),
-		"patches.joshb.io/original-state": string(originalState),
+		"patches.bigideaslearning.com/patched-by":     "patch-operator",
+		"patches.bigideaslearning.com/patch-id":       string(uuid.NewUUID()),
+		"patches.bigideaslearning.com/original-state": string(originalState),
 	}
 
 	if err := addAnnotationsToUnstructured(targetObj, annotations); err != nil {
@@ -154,7 +154,7 @@ func (r *PatchReconciler) cleanup(ctx context.Context, patch *patchesv1.Patch) e
 	}
 
 	// Retrieve original state
-	originalStateJSON, exists := target.GetAnnotations()["patch.joshb.io/originalState"]
+	originalStateJSON, exists := target.GetAnnotations()["patch.bigideaslearning.com/originalState"]
 	if exists {
 		var originalState map[string]interface{}
 		if err := json.Unmarshal([]byte(originalStateJSON), &originalState); err == nil {
@@ -164,10 +164,10 @@ func (r *PatchReconciler) cleanup(ctx context.Context, patch *patchesv1.Patch) e
 
 	// remove annotations
 	annotations := target.GetAnnotations()
-	log.Info("Reverting patch", "Patch", annotations["patches.joshb.io/patch-id"])
-	delete(annotations, "patches.joshb.io/patch-id")
-	delete(annotations, "patches.joshb.io/original-state")
-	delete(annotations, "patches.joshb.io/patched-by")
+	log.Info("Reverting patch", "Patch", annotations["patches.bigideaslearning.com/patch-id"])
+	delete(annotations, "patches.bigideaslearning.com/patch-id")
+	delete(annotations, "patches.bigideaslearning.com/original-state")
+	delete(annotations, "patches.bigideaslearning.com/patched-by")
 	target.SetAnnotations(annotations)
 
 	if err := r.Update(ctx, &target); err != nil {

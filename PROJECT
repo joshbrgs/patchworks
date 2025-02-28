@@ -2,19 +2,19 @@
 # This file is used to track the info used to scaffold your project
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
-domain: joshb.io
+domain: bigideaslearning.com
 layout:
 - go.kubebuilder.io/v4
 projectName: patchworks
-repo: joshb.io/patchworks
+repo: bigideaslearning.com/patchworks
 resources:
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: joshb.io
+  domain: bigideaslearning.com
   group: patches
   kind: Patch
-  path: joshb.io/patchworks/api/v1
+  path: bigideaslearning.com/patchworks/api/v1
   version: v1
 version: "3"
