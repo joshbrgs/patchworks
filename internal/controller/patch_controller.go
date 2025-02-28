@@ -64,7 +64,15 @@ func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 
 	// Check if the resource is being deleted
-	if !patch.ObjectMeta.DeletionTimestamp.IsZero() {
+	if patch.ObjectMeta.DeletionTimestamp.IsZero() {
+		// Ensure finalizer is added
+		if !controllerutil.ContainsFinalizer(patch, patchFinalizer) {
+			controllerutil.AddFinalizer(patch, patchFinalizer)
+			if err := r.Update(ctx, patch); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
 		if controllerutil.ContainsFinalizer(patch, patchFinalizer) {
 			// Perform cleanup before deleting the resource
 			if err := r.cleanup(ctx, patch); err != nil {
@@ -78,14 +86,6 @@ func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			}
 		}
 		return ctrl.Result{}, nil
-	}
-
-	// Ensure finalizer is added
-	if !controllerutil.ContainsFinalizer(patch, patchFinalizer) {
-		controllerutil.AddFinalizer(patch, patchFinalizer)
-		if err := r.Update(ctx, patch); err != nil {
-			return ctrl.Result{}, err
-		}
 	}
 
 	r.Recorder.Event(patch, v1.EventTypeNormal, "PatchProcessing", "Processing patch for target resource")

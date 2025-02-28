@@ -104,21 +104,22 @@ func (r *PatchReconciler) applyPatch(ctx context.Context, target patchesv1.Targe
 	// Create an unstructured object to represent the target resource
 	targetObj := &unstructured.Unstructured{}
 	targetObj.SetGroupVersionKind(gvk)
-
-	annotations := map[string]string{
-		"patches.joshb.io/patched-by": "patch-operator",
-		"patches.joshb.io/patch-id":   string(uuid.NewUUID()),
-	}
-
-	if err := addAnnotationsToUnstructured(targetObj, annotations); err != nil {
-		return fmt.Errorf("failed to add annotations: %w", err)
-	}
-
 	targetKey := types.NamespacedName{Name: target.Name, Namespace: target.Namespace}
 
 	// Fetch the current version of the resource
 	if err := r.Get(ctx, targetKey, targetObj); err != nil {
 		return fmt.Errorf("failed to fetch target resource: %w", err)
+	}
+
+	originalState, _ := json.Marshal(targetObj.Object)
+	annotations := map[string]string{
+		"patches.joshb.io/patched-by":     "patch-operator",
+		"patches.joshb.io/patch-id":       string(uuid.NewUUID()),
+		"patches.joshb.io/original-state": string(originalState),
+	}
+
+	if err := addAnnotationsToUnstructured(targetObj, annotations); err != nil {
+		return fmt.Errorf("failed to add annotations: %w", err)
 	}
 
 	// Convert the patch into JSON format
@@ -152,8 +153,21 @@ func (r *PatchReconciler) cleanup(ctx context.Context, patch *patchesv1.Patch) e
 		return client.IgnoreNotFound(err)
 	}
 
+	// Retrieve original state
+	originalStateJSON, exists := target.GetAnnotations()["patch.joshb.io/originalState"]
+	if exists {
+		var originalState map[string]interface{}
+		if err := json.Unmarshal([]byte(originalStateJSON), &originalState); err == nil {
+			target.Object = originalState
+		}
+	}
+
+	// remove annotations
 	annotations := target.GetAnnotations()
-	delete(annotations, "patched-by-patchworker")
+	log.Info("Reverting patch", "Patch", annotations["patches.joshb.io/patch-id"])
+	delete(annotations, "patches.joshb.io/patch-id")
+	delete(annotations, "patches.joshb.io/original-state")
+	delete(annotations, "patches.joshb.io/patched-by")
 	target.SetAnnotations(annotations)
 
 	if err := r.Update(ctx, &target); err != nil {
