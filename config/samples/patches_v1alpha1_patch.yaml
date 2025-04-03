@@ -1,0 +1,54 @@
+apiVersion: patches.patchworks.io/v1alpha1
+kind: Patch
+metadata:
+  labels:
+    app.kubernetes.io/name: patchworks
+    app.kubernetes.io/managed-by: kustomize
+  name: patch-sample
+spec:
+  target:
+    kind: Deployment
+    apiVersion: apps/v1
+    name: nginx
+    namespace: default
+  source:
+    kind: ConfigMap
+    name: sample-config
+  template: |
+    spec:
+      template:
+        spec:
+          containers:
+            - name: nginx
+              env:
+                - name: APP_NAME_SINCE_IT_HAS_BEEN
+                  value: "{{ .name }}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sample-config
+data:
+  name: "sir-request-a-lot"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80

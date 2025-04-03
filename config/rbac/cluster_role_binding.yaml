@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: patch-controller-rolebinding
+subjects:
+  - kind: ServiceAccount
+    name: patchworks-controller-manager 
+    namespace: patchworks-system 
+roleRef:
+  kind: ClusterRole
+  name: patch-controller-role
+  apiGroup: rbac.authorization.k8s.io
