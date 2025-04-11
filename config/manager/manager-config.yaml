@@ -1,0 +1,13 @@
+# https://kubernetes.io/docs/concepts/configuration/secret/
+apiVersion: v1
+kind: Secret
+metadata:
+  name: manager-secret
+type: Opaque
+stringData:
+  REDIS_USERNAME: default
+  REDIS_PASSWORD: password
+  REDIS_ADDR: patchworks-redis-service.patchworks-system.svc.cluster.local
+  REDIS_PORT: "6379"
+---
+

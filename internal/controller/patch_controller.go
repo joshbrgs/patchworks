@@ -18,11 +18,12 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 
-	patchesv1alpha1 "github.com/joshbrgs/patchworks/api/v1alpha1"
-	"github.com/joshbrgs/patchworks/pkg/patch"
-	"github.com/joshbrgs/patchworks/pkg/utils"
+	patchesv1alpha1 "github.com/bigideaslearning/patchworks/api/v1alpha1"
+	"github.com/bigideaslearning/patchworks/pkg/patch"
+	"github.com/bigideaslearning/patchworks/pkg/store"
+	"github.com/bigideaslearning/patchworks/pkg/utils"
+	"github.com/redis/go-redis/v9"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -37,12 +38,12 @@ type PatchReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
+	DB       *redis.Client
 }
 
 const (
-	originalStateAnnotation = "patch.patchworks.io/original-state"
-	patchedByAnnotation     = "patch.patchworks.io/patched-by"
-	patchedIdAnnotation     = "patch.patchworks.io/patch-id"
+	patchedByAnnotation = "patch.patchworks.io/patched-by"
+	patchedIdAnnotation = "patch.patchworks.io/patch-id"
 )
 
 // +kubebuilder:rbac:groups=patches.patchworks.io,resources=patches,verbs=get;list;watch;create;update;patch;delete
@@ -57,6 +58,8 @@ const (
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.18.4/pkg/reconcile
 func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
+
+	db := store.NewStore(ctx, r.Client, r.DB)
 
 	log.Info("Reconciling Patch CRD", "Patch Name", req.Name)
 
@@ -79,15 +82,12 @@ func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			return ctrl.Result{}, err
 		}
 	} else {
-		log.Info("Cleaning up Kind resource", "Patch Revert")
-		return ctrl.Result{}, finalizerManager.HandleDeletion(func() error { return r.cleanup(ctx, patchKind) })
+		log.Info("Cleaning up Kind resource")
+		return ctrl.Result{}, finalizerManager.HandleDeletion(func() error { return r.cleanup(ctx, db, patchKind) })
 	}
 
-	// TODO Store original Value before patching
-	log.Info("Storing Original Value of Target Kind", "Target", patchKind.Spec.Target.Name, "Kind", patchKind.Spec.Target.Kind)
-
 	// Execute Command to Patch
-	patchCommand := patch.NewPatchCommand(ctx, r.Client, patchKind, &patch.PatchCommandAbstract{})
+	patchCommand := patch.NewPatchCommand(ctx, r.Client, db, patchKind, &patch.PatchCommandAbstract{})
 
 	if err := patchCommand.Execute(); err != nil {
 		return ctrl.Result{}, err
@@ -114,41 +114,47 @@ func (r *PatchReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *PatchReconciler) cleanup(ctx context.Context, patch *patchesv1alpha1.Patch) error {
+func (r *PatchReconciler) cleanup(ctx context.Context, db *store.RedisStore, patch *patchesv1alpha1.Patch) error {
 	log := log.FromContext(ctx)
 	log.Info("Performing cleanup", "Patch", patch.Name)
 
-	//Reverse changes to target
 	targetRef := patch.Spec.Target
 	log.Info("Reverting patches", "Target", targetRef)
 
-	target, err := utils.GetResource(ctx, r.Client, targetRef)
+	// Fetch the most recent version of the resource
+	current, err := utils.GetResource(ctx, r.Client, targetRef)
 	if err != nil {
 		return err
 	}
 
-	// Retrieve original state
-	originalStateJSON, exists := target.GetAnnotations()[originalStateAnnotation]
+	annotations := current.GetAnnotations()
 
-	if exists {
-		var originalState map[string]interface{}
-		if err := json.Unmarshal([]byte(originalStateJSON), &originalState); err == nil {
-			target.Object = originalState
-		}
+	// Retrieve original state from Redis
+	patchId, ok := annotations[patchedIdAnnotation]
+	if !ok {
+		log.Info("Failed to find a patchId annotation")
+		return nil
 	}
 
-	// remove annotations
-	annotations := target.GetAnnotations()
+	originalState, err := db.Get(patchId)
+	if err != nil {
+		log.Error(err, "Failed to retrieve original", "Redis", patchId)
+		return err
+	}
 
-	log.Info("Reverting patch", "Patch", annotations[patchedIdAnnotation])
+	// Carry over updated metadata from `current` to `originalState`
+	originalState.SetResourceVersion(current.GetResourceVersion())
+	originalState.SetUID(current.GetUID())
 
-	delete(annotations, annotations[patchedIdAnnotation])
-	delete(annotations, annotations[patchedByAnnotation])
-	delete(annotations, annotations[originalStateAnnotation])
+	// Copy over any annotations from the current that shouldn't be reverted
+	delete(annotations, patchedIdAnnotation)
+	delete(annotations, patchedByAnnotation)
 
-	target.SetAnnotations(annotations)
+	originalState.SetAnnotations(annotations)
 
-	if err := r.Update(ctx, target); err != nil {
+	// Perform update
+	if err := r.Update(ctx, originalState); err != nil {
+		log.Error(err, "Failed to update resource with original state")
 		return err
 	}
 

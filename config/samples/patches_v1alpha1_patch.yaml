@@ -21,7 +21,7 @@ spec:
           containers:
             - name: nginx
               env:
-                - name: APP_NAME_SINCE_IT_HAS_BEEN
+                - name: Delete_me
                   value: "{{ .name }}"
 ---
 apiVersion: v1

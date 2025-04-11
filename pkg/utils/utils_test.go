@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	patchesv1alpha1 "github.com/joshbrgs/patchworks/api/v1alpha1"
+	patchesv1alpha1 "bitbucket.org/bigideaslearning/patchworks/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

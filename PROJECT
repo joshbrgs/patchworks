@@ -6,7 +6,7 @@ domain: patchworks.io
 layout:
 - go.kubebuilder.io/v4
 projectName: patchworks
-repo: github.com/joshbrgs/patchworks
+repo: bitbucket.org/bigideaslearning/patchworks
 resources:
 - api:
     crdVersion: v1
@@ -15,6 +15,6 @@ resources:
   domain: patchworks.io
   group: patches
   kind: Patch
-  path: github.com/joshbrgs/patchworks/api/v1alpha1
+  path: bitbucket.org/bigideaslearning/patchworks/api/v1alpha1
   version: v1alpha1
 version: "3"

@@ -21,12 +21,17 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	patchesv1alpha1 "github.com/bigideaslearning/patchworks/api/v1alpha1"
+	"github.com/bigideaslearning/patchworks/internal/controller"
+	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -36,9 +41,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-
-	patchesv1alpha1 "github.com/joshbrgs/patchworks/api/v1alpha1"
-	"github.com/joshbrgs/patchworks/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -146,10 +148,39 @@ func main() {
 		os.Exit(1)
 	}
 
+	err = godotenv.Load()
+	if err != nil {
+		setupLog.Error(err, "Error loading .env file")
+	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:       fmt.Sprintf("%s:%s", os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PORT")),
+		Username:   os.Getenv("REDIS_USERNAME"),
+		Password:   os.Getenv("REDIS_PASSWORD"),
+		DB:         0,
+		MaxRetries: 10,
+	})
+
+	if rdb != nil {
+		setupLog.Info("...Connected to Redis...")
+	}
+
+	// Enable tracing instrumentation.
+	// if err := redisotel.InstrumentTracing(rdb); err != nil {
+	// 	setupLog.Error(err, "unable to enable redis ")
+	// 	panic(err)
+	// }
+	//
+	// // Enable metrics instrumentation.
+	// if err := redisotel.InstrumentMetrics(rdb); err != nil {
+	// 	panic(err)
+	// }
+
 	if err = (&controller.PatchReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("patch-controller"),
+		DB:       rdb,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Patch")
 		os.Exit(1)

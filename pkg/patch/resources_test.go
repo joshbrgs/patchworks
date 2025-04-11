@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	patchesv1alpha1 "github.com/joshbrgs/patchworks/api/v1alpha1"
+	patchesv1alpha1 "github.com/bigideaslearning/patchworks/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -16,6 +16,17 @@ spec:
       - name: redis
         image: redis:alpine
         args: []
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: patchworks-manager-secret
+              key: REDIS_PASSWORD
+        - name: REDIS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: patchworks-manager-secret
+              key: REDIS_USERNAME
         ports:
         - containerPort: 6379
         resources:

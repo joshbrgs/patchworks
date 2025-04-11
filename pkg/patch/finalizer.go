@@ -3,7 +3,7 @@ package patch
 import (
 	"context"
 
-	patchesv1alpha1 "github.com/joshbrgs/patchworks/api/v1alpha1"
+	patchesv1alpha1 "github.com/bigideaslearning/patchworks/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
